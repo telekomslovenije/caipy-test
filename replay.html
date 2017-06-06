@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<link rel="apple-touch-icon" sizes="76x76" href="./assets/img/apple-icon.png" />
+	<link rel="icon" type="image/png" href="./assets/img/favicon.png" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+	<title>Caipy Testing</title>
+
+	<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+    <meta name="viewport" content="width=device-width" />
+
+    <!-- Bootstrap core CSS     -->
+    <link href="./assets/css/bootstrap.min.css" rel="stylesheet" />
+    <!--  Material Dashboard CSS    -->
+    <link href="./assets/css/material-dashboard.css" rel="stylesheet"/>
+	<link href="./assets/css/bootstrap-select.min.css" rel="stylesheet" >
+	<link href="./assets/css/bootstrap-material-datetimepicker.css" rel="stylesheet" />
+    <!--     Fonts and icons     -->
+    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" rel="stylesheet">
+    <link href='http://fonts.googleapis.com/css?family=Roboto:400,700,300|Material+Icons' rel='stylesheet' type='text/css'>
+	<style>
+		video {width: 100%; background:#000;}
+		.main-panel { float: none; width: 100%;}
+		.main-panel > .content {margin-top: auto;}
+	</style>
+</head>
+
+<body>
+
+	<div class="wrapper">
+	    <div class="main-panel">
+			<div class="content">
+				<div class="container-fluid">
+					<div class="row">
+						<div class="col-lg-6 col-md-12">
+							<div class="card">
+								<div class="card-content">
+									<h4 class="title">TV Channel</h4>
+									<div class="btn-group bootstrap-select channel-loading">
+										<button type="button" class="btn dropdown-toggle btn-default" data-toggle="dropdown" role="button" title="">
+											<span class="filter-option pull-left">Loading Channels...</span>&nbsp;
+										</button>
+									</div>
+									<select class="selectPicker hide" data-live-search="true" id="channelId"></select>
+								</div>
+								<div class="card-footer">
+								</div>
+							</div>
+						</div>
+
+						<div class="col-lg-6 col-md-12">
+							<div class="card">
+								<div class="card-content">
+									<h4 class="title">Date</h4>
+	                                <form>
+										<div class="form-group label-floating">
+											<input type="text" class="form-control" id="date">
+										</div>
+	                                </form>
+								</div>
+								<div class="card-footer">
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-lg-4 col-md-12">
+							<div class="card">
+								<div class="card-header" data-background-color="grey">
+	                                <h4 class="title">Original stream</h4>
+								</div>
+								<div class="card-content">
+									<video id="video_original" controls></video>
+								</div>
+								<div class="card-footer">
+									<div class="stats">
+										<i class="material-icons">schedule</i> Start: <i class="video_original_start"></i>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-4 col-md-12">
+							<div class="card">
+								<div class="card-content">
+									<h4 class="title">Completed Tasks</h4>
+									<div class="card-content table-responsive">
+										<table class="table table-hover playList">
+											<thead class="text-warning">
+												<th>ID</th>
+												<th>Start</th>
+												<th>Title</th>
+											</thead>
+											<tbody>
+											</tbody>
+										</table>
+									</div>
+								</div>
+								<div class="card-footer">
+									<div class="stats">
+										<i class="material-icons">access_time</i> Results <i class="events-number">0</i>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-lg-4 col-md-12">
+							<div class="card">
+	                            <div class="card-header" data-background-color="grey">
+	                                <h4 class="title">Caipy stream</h4>
+	                            </div>
+	                            <div class="card-content">
+									<video id="video_caipy" controls></video>
+	                            </div>
+								<div class="card-footer">
+									<div class="stats">
+										<i class="material-icons">update</i> Start: <i class="video_caipy_start"></i>
+									</div>
+									<span class="pull-right caipy-offset "><i class="fa"></i> <i class="caipy-offset-time"></i> </span>
+								</div>
+	                        </div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<footer class="footer">
+				<div class="container-fluid">
+				</div>
+			</footer>
+		</div>
+	</div>
+
+</body>
+
+	<!--   Core JS Files   -->
+	<script src="./assets/js/jquery-3.1.0.min.js"></script>
+	<script src="./assets/js/bootstrap.min.js"></script>
+	<script src="./assets/js/material.min.js"></script>
+	<!-- Material Dashboard javascript methods -->
+	<script src="./assets/js/moment.js"></script>
+	<script src="./assets/js/bootstrap-material-datetimepicker.js"></script>
+	<script src="./assets/js/bootstrap-select.min.js"></script>
+	<script src="./assets/js/hls.min.js"></script>	
+	<script type="text/javascript">
+	// initialize variables
+	var channelId = undefined;
+	var tvinChannelName = undefined;
+	var originalStart = undefined;
+	var sharpStart = undefined;
+
+	var channels = {
+		count: 0,
+		list: [],
+	}
+
+	// remote API endpoints
+	var caipyChannelListAPI = 'http://vidra-apid.siol.tv/api/caipy_test/caipy_channels/';
+	var channelEventsAPI = 'http://vidra-apid.siol.tv/api/caipy_test/events/{channelID}}/';
+
+	var debug = true;
+
+	Format = {
+		doubleFormatter: function(x) {
+			x = x.toString();
+			if (x.length == 1) {
+				return '0' + x;
+			} else {
+				return x;
+			}
+		},
+		minuteFormatter: function(microSeconds) {
+			var diffString = '';
+			var seconds = microSeconds / 1000;
+			var tempSeconds = 0;
+			if (seconds < 0) {
+				// make this absolute
+				diffString = '-';
+				seconds = Math.abs(seconds);
+			}
+			var minutes = Math.floor(seconds / 60);
+			if (minutes.toString().length == 1) {
+				diffString += '0' + minutes.toString();
+			} else {
+				diffString += minutes.toString();
+			}
+
+			diffString += ':';
+			if (minutes > 0) {
+				tempSeconds = seconds - (minutes * 60) ;
+				if (tempSeconds.toString().length == 1) {
+					diffString += '0' + tempSeconds.toString();
+				} else {
+					diffString += tempSeconds.toString();
+				}
+			} else {
+				if (seconds.toString().length == 1) {
+					diffString += '0' + seconds.toString();
+				} else {
+					diffString += seconds.toString();
+				}
+			}
+			return diffString;
+		},
+		datetimeFormatter: function(timestamp) { 
+			var date = new Date(timestamp);
+			var h = Format.doubleFormatter(date.getHours());
+			var m = Format.doubleFormatter(date.getMinutes());
+			var s = Format.doubleFormatter(date.getSeconds());
+			var y = Format.doubleFormatter(date.getFullYear());
+			var mm = Format.doubleFormatter(date.getMonth());
+			var d = Format.doubleFormatter(date.getDate());
+			return h + ':' + m + ':' + s + ' ' + y +  '.' + mm + '.' + d;
+		}
+	}
+
+	var Selectors = {
+		selectPicker: $('.selectPicker'),
+		channelSelector: $('#channelId'),
+		channelLoading: $('.channel-loading'),
+		date: $("#date"),
+		playList: {
+			Item: $('.playList tbody tr'),
+			Counter: $('.events-number'),
+			// Root: $('.playList>tbody'),
+			Root: $('.playList'),
+		},
+		video: {
+			Original: {
+				Start: $('.video_original_start'),
+			},
+			Caipy: {
+				Start: $('.video_caipy_start'),
+			},
+		}
+	};
+
+	var Channel = {
+		count: 0,
+		list: [],
+		selected: null,
+		setCount: function(counter) {
+			this.count = counter;
+		},
+		getSelected: function () {
+			if (this.selected == null) {
+				this.setSelected();
+			}
+			return this.selected;
+		},
+		setSelected: function() {
+			var cid = Selectors.channelSelector
+			if (cid != undefined) {
+				this.selected = cid[0].value;
+			}
+		},
+		addToList: function(channel) {
+			this.list.push(channel);
+		},
+		getList: function() {
+			if (debug) { console.log('Fetching caipy channel list...'); }
+			$.get({
+				url: caipyChannelListAPI,
+				dataType: 'json',
+				beforeSend: function() {
+					Selectors.selectPicker.fadeOut();
+				},
+				success: function(data) {
+					if (debug) { console.log('Processing channel list...'); }
+					if (data.caipy_channels != undefined && data.caipy_channels.length > 0) {
+						Channel.setCount(data.caipy_channels.length);
+						if (debug) { console.log('Found ' + channels.count + ' channels...'); }
+						for (index = 0; index < data.caipy_channels.length; ++index) {
+							if (data.caipy_channels[index].epg_hd != undefined || data.caipy_channels[index].epg_hd != null) {
+								Channel.addToList(data.caipy_channels[index].epg_hd);
+							}
+							if (data.caipy_channels[index].epg_sd != undefined || data.caipy_channels[index].epg_sd != null) {
+								Channel.addToList(data.caipy_channels[index].epg_sd);
+							}
+							if (data.caipy_channels[index].epg_4k != undefined || data.caipy_channels[index].epg_4k != null) {
+								Channel.addToList(data.caipy_channels[index].epg_4k);
+							}
+						}
+					}
+					if (debug) { console.log('Done parsing channel list from API...'); }
+					// populateChannelSelectList();
+					// refresh channel List UI part
+					UI.channelList();
+				},
+				fail:  function() {
+					if (debug) { console.log('Failed parsing channel list from API endpoint: ' + caipyChannelListAPI); }
+				}
+			});
+		},
+		initialize: function() {
+			if (debug) { console.log('Initializing Channel init method...'); }
+			Channel.getSelected();
+		// function init() {
+		// 	console.log('Initializing init method...');
+		// 	getChannelId();
+		// 	getChannelEvents();
+		// 	$('.playList').html(playListHeader());
+		// }
+		},
+		eventsEndpointAPI: function() {
+			return channelEventsAPI.replace('{channelID}', Channel.getSelected());
+		},
+		getEvents: function() {
+			// $('.playList').html(playListHeader());
+			UI.playList.clear();
+			$.ajax({
+				url: this.eventsEndpointAPI(),
+				data: { date: Selectors.date[0].value },
+				dataType: 'json',
+				jsonp: 'callback',
+				success: function(data) {
+					if (debug) { console.log('Fetching events for channel ' + Channel.getSelected() + '...'); }
+					if (data.events != undefined) {
+						if (data.events.length > 0) {
+							if (debug) { console.log('Processing ' + data.events.length + ' events...'); }
+							tvinChannelName = data.tvin_name;
+							// $('.playList').html(playListHeader());
+							// UI.playList.clear();
+							for (index = 0; index < data.events.length; ++index) {
+								Events.parse(data.events[index]);
+							}
+						}
+					} else {
+						if (debug) { console.log('Channel.getEvents has no events to display...'); }
+					}
+					Events.onClick();
+				},
+				fail:  function() {
+					if (debug) {  console.log('Channel.getEvents Requesting channel event list, has failed...'); }
+				}
+			});
+		},
+	}
+
+	var UI = {
+		channelList: function() {
+			if (debug) { console.log('Populating Channel Select List...'); }
+			for (index = 0; index < Channel.list.length; index++) {
+				Selectors.channelSelector.append('<option data-tokens="' + Channel.list[index] + '">' + Channel.list[index] + '</option>');
+			}
+			if (debug) { console.log('Initializing select picker...'); }
+			Selectors.channelLoading.fadeOut(100, function() {
+				Selectors.selectPicker.removeClass('hide');
+				Selectors.selectPicker.selectpicker({liveSearch: true});
+				// init();
+				Channel.getSelected();
+				Channel.getEvents();
+			});
+		},
+		playList: {
+			add: function(event) {
+				// console.log(event);
+				var item = '<tr attr-vbegin="' + event.url_info.vbegin + '" attr-vbegin-sharp="' + event.url_info.vbegin_sharp + '" attr-vend="' + event.url_info.vend + '" attr-datetime-start="' + event.start.replace('T', ' ') + '" attr-datetime-sharp-start="' + event.sharp_start.replace('T', ' ') + '" attr-datetime-end="' + event.end + '" attr-event-id="' + event.event_id + '" attr-title="' + event.title + '" attr-tvin-name="' + event.tvin_name + '"><td>' + event.event_id + '</td><td class="start">' + Format.datetimeFormatter(event.start) + '</td><td>' + event.title + '</td><td class="sharpStart hidden">' + event.url_info.vbegin_sharp + '</td><td class="end hidden">' + event.url_info.end + '</td></tr>';
+				$('.playList>tbody').append(item);
+				// need to figure out why this is not working ! 
+				// Selectors.playList.append('<tr><td>cc</td><td>cc</td><td>cc</td><td>cc</td></tr>');
+				if (debug) { console.log('Adding event ' + event.event_id + ' has sharp start...'); }
+				this.updateCount();
+			},
+			updateCount: function() {
+				var eventsNumber = parseInt(Selectors.playList.Counter.html());
+				Selectors.playList.Counter.html(eventsNumber +1);
+			},
+			resetCount: function() {
+				Selectors.playList.Counter.html(0);
+			},
+			removeSelectedClass: function() {
+				// Selectors.playList.Item.removeClass('bg-info');
+				// for (count = 0; count < Selectors.playList.Item.length; count++) {
+				// 	Selectors.playList.Item.removeClass('bg-info');
+				// }
+			},
+			setSelected: function(item) {
+				$(item).addClass('bg-info');
+			},
+			clear: function() {
+				Selectors.playList.Root.html('<thead class="text-warning"><th>ID</th><th>Start</th><th>Title</th></thead><tbody></tbody>');
+				this.resetCount();
+			},
+		},
+		video: {
+			info: {
+				setStart: {
+					original: function(time) {
+						Selectors.video.Original.Start.text(time);
+					},
+					caipy: function(original, caipy) {
+						var s = new Date(original);
+						var ss = new Date(caipy);
+						var diff = ss - s;
+						Selectors.video.Caipy.Start.text(caipy);
+						// $('.video_caipy_start').text(sharpStart);
+						if (ss > s) {
+							$('.caipy-offset').removeClass('text-danger').addClass('text-success');
+							$('.caipy-offset i.fa').removeClass('fa-long-arrow-down').addClass('fa-long-arrow-up');
+							// <span class="pull-right caipy-offset text-success"><i class="fa fa-long-arrow-up"></i>  </span>
+						} else if (ss < s) {
+							$('.caipy-offset').removeClass('text-success').addClass('text-danger');
+							$('.caipy-offset i.fa').removeClass('fa-long-arrow-up').addClass('fa-long-arrow-down');
+						}
+						$('.caipy-offset-time').text(Format.minuteFormatter(diff));
+					}
+				}
+			},
+			player: {
+				original: {
+					init: function(channelName, start, end) {
+						var originalStream = "http://cupy-01.ott.interseek.com:81/" + channelName + "/" + channelName + ".isml/" + channelName + ".m3u8?vbegin=" + start + "&vend=" + end;
+						if(Hls.isSupported()) {
+							var v1 = document.getElementById('video_original');
+							var hls1 = new Hls();
+							hls1.loadSource(originalStream);
+							hls1.attachMedia(v1);
+							hls1.on(Hls.Events.MANIFEST_PARSED,function() {
+								v1.play();
+							});
+						}
+					}, 
+				},
+				caipy: {
+					init: function(channelName, start, end) {
+						var caipyStream = "http://cupy-01.ott.interseek.com:81/" + channelName + "/" + channelName + ".isml/" + channelName + ".m3u8?vbegin=" + start + "&vend=" + end;
+						if(Hls.isSupported()) {
+							var v2 = document.getElementById('video_caipy');
+							var hls2 = new Hls();
+							hls2.loadSource(caipyStream);
+							hls2.attachMedia(v2);
+							hls2.on(Hls.Events.MANIFEST_PARSED,function() {
+								v2.play();
+							});
+						}
+					}, 
+				}
+			}
+		}
+	};
+
+	var Events = {
+		parse: function (event) {
+			if (event.url_info.vbegin_sharp != undefined) {
+				if (debug) { console.log('Adding event ' + event.event_id + ' has sharp start...'); }
+				UI.playList.add(event);
+			} else {
+				if (debug) { console.log('Skipping event ' + event.event_id + ' has no sharp start...'); }
+			}
+		},
+		onClick: function () {
+			if (debug) { console.log('Registering onclick event for events...'); }
+			$('.playList tbody tr').click(function() {
+			// Selectors.playList.Item.click(function() {
+				$('.playList tbody tr').removeClass('bg-info');
+				// UI.playList.removeSelectedClass();
+				$(this).addClass('bg-info');
+				// UI.playList.setSelected($(this));
+				var vBegin = ($(this).attr('attr-vbegin') != (undefined || '') ) ? $(this).attr('attr-vbegin') : undefined;
+				var vBeginSharp = ($(this).attr('attr-vbegin-sharp') != (undefined || '') ) ? $(this).attr('attr-vbegin-sharp') : undefined;
+				var vEnd = ($(this).attr('attr-vend') != (undefined || '') )? $(this).attr('attr-vend') : undefined;
+				originalStart = ($(this).attr('attr-datetime-start') != (undefined || '') )? $(this).attr('attr-datetime-start') : undefined;
+				sharpStart = ($(this).attr('attr-datetime-sharp-start') != (undefined || '') )? $(this).attr('attr-datetime-sharp-start') : undefined;
+				if ( (vBegin != ('' || undefined)) && (vBeginSharp != ('' || undefined)) && (vEnd != ('' || undefined)) && (vEnd != ('' || undefined)) && (tvinChannelName != ('' || undefined)) ) {
+					UI.video.info.setStart.original(originalStart);
+					// setOriginalStartInfo(originalStart);
+					// setSharpStartInfo(sharpStart, originalStart);
+					UI.video.info.setStart.caipy(originalStart, sharpStart);
+					UI.video.player.original.init(tvinChannelName, vBegin, vEnd);
+					UI.video.player.caipy.init(tvinChannelName, vBeginSharp, vEnd);
+				} else {
+					if (debug) { Console.log('Error ! Event info incomplete [Start: ' + vBegin + ' SharpStart: ' + vBeginSharp + ' End: ' + vEnd + ' TvinChannelName: ' + tvinChannelName + ']'); }
+				}
+			});
+		},
+	}
+
+	$(document).ready(function(){
+		if (debug) { console.log('Document ready...'); }
+		var oneWeekAgo = new Date();
+		oneWeekAgo.setDate(oneWeekAgo.getDate() -7);
+		$('input#date').bootstrapMaterialDatePicker({weekStart:0, time:false, format : 'YYYY-MM-DD', minDate : oneWeekAgo, maxDate: new Date(), switchOnClick: true, currentDate: new Date()}).on('change', function(){
+			Channel.getSelected();
+			Channel.getEvents();
+		});
+		Channel.getList();
+		$("#channelId").change(function() {
+			Channel.getSelected();
+			Channel.getEvents();
+		});
+	});
+</script>
+
+</html>
