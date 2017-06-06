@@ -243,17 +243,15 @@
 		setCount: function(counter) {
 			this.count = counter;
 		},
-		getSelected: function () {
-			if (this.selected == null) {
-				this.setSelected();
-			}
-			return this.selected;
-		},
 		setSelected: function() {
 			var cid = Selectors.channelSelector
 			if (cid != undefined) {
 				this.selected = cid[0].value;
 			}
+		},
+		getSelected: function () {
+			// this.setSelected();
+			return this.selected;
 		},
 		addToList: function(channel) {
 			this.list.push(channel);
@@ -295,6 +293,7 @@
 		},
 		initialize: function() {
 			if (debug) { console.log('Initializing Channel init method...'); }
+			Channel.setSelected();
 			Channel.getSelected();
 		// function init() {
 		// 	console.log('Initializing init method...');
@@ -349,6 +348,7 @@
 				Selectors.selectPicker.removeClass('hide');
 				Selectors.selectPicker.selectpicker({liveSearch: true});
 				// init();
+				Channel.setSelected();
 				Channel.getSelected();
 				Channel.getEvents();
 			});
@@ -482,11 +482,13 @@
 		var oneWeekAgo = new Date();
 		oneWeekAgo.setDate(oneWeekAgo.getDate() -7);
 		$('input#date').bootstrapMaterialDatePicker({weekStart:0, time:false, format : 'YYYY-MM-DD', minDate : oneWeekAgo, maxDate: new Date(), switchOnClick: true, currentDate: new Date()}).on('change', function(){
+			Channel.setSelected();
 			Channel.getSelected();
 			Channel.getEvents();
 		});
 		Channel.getList();
 		$("#channelId").change(function() {
+			Channel.setSelected();
 			Channel.getSelected();
 			Channel.getEvents();
 		});
