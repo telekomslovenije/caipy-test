@@ -156,8 +156,8 @@
 	}
 
 	// remote API endpoints
-	var caipyChannelListAPI = 'http://vidra-apid.siol.tv/api/caipy_test/caipy_channels/';
-	var channelEventsAPI = 'http://vidra-apid.siol.tv/api/caipy_test/events/{channelID}/';
+	var caipyChannelListAPI = 'http://REPLACE_THIS_WITH_YOUR_API_URL/api/caipy_test/caipy_channels/';
+	var channelEventsAPI = 'http://REPLACE_THIS_WITH_YOUR_API_URL/api/caipy_test/events/{channelID}/';
 
 	var debug = true;
 
@@ -411,7 +411,7 @@
 			player: {
 				original: {
 					init: function(channelName, start, end) {
-						var originalStream = "http://cupy-01.ott.interseek.com:81/" + channelName + "/" + channelName + ".isml/" + channelName + ".m3u8?vbegin=" + start + "&vend=" + end;
+						var originalStream = "http://ADAPTIVE_STREAMING_CDN/" + channelName + "/" + channelName + ".isml/" + channelName + ".m3u8?vbegin=" + start + "&vend=" + end;
 						if(Hls.isSupported()) {
 							var v1 = document.getElementById('video_original');
 							var hls1 = new Hls();
@@ -425,7 +425,7 @@
 				},
 				caipy: {
 					init: function(channelName, start, end) {
-						var caipyStream = "http://cupy-01.ott.interseek.com:81/" + channelName + "/" + channelName + ".isml/" + channelName + ".m3u8?vbegin=" + start + "&vend=" + end;
+						var caipyStream = "http://ADAPTIVE_STREAMING_CDN/" + channelName + "/" + channelName + ".isml/" + channelName + ".m3u8?vbegin=" + start + "&vend=" + end;
 						if(Hls.isSupported()) {
 							var v2 = document.getElementById('video_caipy');
 							var hls2 = new Hls();

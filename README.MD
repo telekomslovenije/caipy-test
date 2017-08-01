@@ -1,8 +1,8 @@
 In replay.html, you need to change the following API end points ... 
 
 	// remote API endpoints
-var caipyChannelListAPI = 'http://vidra-apid.siol.tv/api/caipy_test/caipy_channels/';
-var channelEventsAPI = 'http://vidra-apid.siol.tv/api/caipy_test/events/{channelID}/';
+var caipyChannelListAPI = 'http://server_name/api/caipy_test/caipy_channels/';
+var channelEventsAPI = 'http://server_name/api/caipy_test/events/{channelID}/';
 
 CaipyChannelListAPI should return json with the channel list id's that are used 
 for retrieving epg events ... 
@@ -38,3 +38,7 @@ about title, event id, end and start timestamps and also vbegin and vend for str
 "start": "2017-06-21T01:20:00+02:00"
 }]
 }
+
+You also need to replace streaming urls (currently supporting Unified Streaming out of the box):
+
+var originalStream = "http://ADAPTIVE_STREAMING_CDN/" + channelName + "/" + channelName + ".isml/" + channelName + ".m3u8?vbegin=" + start + "&vend=" + end;
