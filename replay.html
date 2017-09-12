@@ -209,7 +209,7 @@
 			var m = Format.doubleFormatter(date.getMinutes());
 			var s = Format.doubleFormatter(date.getSeconds());
 			var y = Format.doubleFormatter(date.getFullYear());
-			var mm = Format.doubleFormatter(date.getMonth());
+			var mm = Format.doubleFormatter(date.getMonth() +1); // getMonth is 0 based, so we must add 1 to the output ... 
 			var d = Format.doubleFormatter(date.getDate());
 			return h + ':' + m + ':' + s + ' ' + y +  '.' + mm + '.' + d;
 		}
