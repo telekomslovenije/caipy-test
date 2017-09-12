@@ -357,7 +357,7 @@
 			add: function(event) {
 				// console.log(event);
 				var item = '<tr attr-vbegin="' + event.url_info.vbegin + '" attr-vbegin-sharp="' + event.url_info.vbegin_sharp + '" attr-vend="' + event.url_info.vend + '" attr-datetime-start="' + event.start.replace('T', ' ') + '" attr-datetime-sharp-start="' + event.sharp_start.replace('T', ' ') + '" attr-datetime-end="' + event.end + '" attr-event-id="' + event.event_id + '" attr-title="' + event.title + '" attr-tvin-name="' + event.tvin_name + '"><td>' + event.event_id + '</td><td class="start">' + Format.datetimeFormatter(event.start) + '</td><td>' + event.title + '</td><td class="sharpStart hidden">' + event.url_info.vbegin_sharp + '</td><td class="end hidden">' + event.url_info.end + '</td></tr>';
-				$('.playList>tbody').append(item);
+				$('.playList>tbody').prepend(item);
 				// need to figure out why this is not working ! 
 				// Selectors.playList.append('<tr><td>cc</td><td>cc</td><td>cc</td><td>cc</td></tr>');
 				if (debug) { console.log('Adding event ' + event.event_id + ' has sharp start...'); }
